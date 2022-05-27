@@ -1,0 +1,67 @@
+.wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  justify-content: center;
+  padding-top: 100px;
+  background-color: #eeeeee;
+
+  form {
+    background-color: white;
+    border-radius: 10px;
+    max-height: 420px;
+    width: 400px;
+    padding: 20px 30px;
+   
+
+    .title {
+      width: 100%;
+      text-align: center;
+      color: #383838;
+      font-weight: 500;
+      margin-bottom: 30px;
+    }
+
+    .row {
+      margin: 15px 0;
+      width: 100%;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #808080;
+      }
+      input {
+        width: 100%;
+        border: 1px solid #bfbfbf;
+        height: 33px;
+        border-radius: 5px;
+        padding-left: 5px;
+
+        &:focus {
+          outline: none;
+          box-shadow: 5px 5px 10px #eeeeee;
+        }
+      }
+    }
+
+    .btnContainer {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+
+      button {
+        cursor: pointer;
+        background-color: #3166ec;
+        width: 150px;
+        border: none;
+        height: 40px;
+        color: white;
+        border-radius: 5px;
+        font-weight: 500;
+      }
+    }
+  }
+}

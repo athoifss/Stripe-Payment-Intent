@@ -1,0 +1,13 @@
+{
+  "liveServer.settings.port": 5501,
+  "liveSassCompile.settings.autoprefix": null,
+  "liveSassCompile.settings.excludeList": ["**/node_modules/**", ".vscode/**"],
+  "liveSassCompile.settings.generateMap": false,
+  "liveSassCompile.settings.formats": [
+    {
+      "format": "expanded",
+      "extensionName": ".css",
+      "savePath": "~/styles/"
+    }
+  ]
+}
