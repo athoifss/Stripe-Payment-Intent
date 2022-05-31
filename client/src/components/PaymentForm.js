@@ -1,17 +1,13 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import style from "./PaymentForm.module.scss";
 
 import clsx from "clsx";
 import { format } from "date-fns";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements, useStripe, CardCvcElement, useElements } from "@stripe/react-stripe-js";
+import { useStripe, CardCvcElement, useElements } from "@stripe/react-stripe-js";
 
 import { postRequest } from "../utils/api";
-import config from "../utils/config.json";
 
-const stripePromise = loadStripe(config.stripePublishableKey);
-
-function PaymentForm({ paymentMethod, paymentIntent }) {
+export default function PaymentForm({ paymentMethod, paymentIntent }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -48,7 +44,6 @@ function PaymentForm({ paymentMethod, paymentIntent }) {
 
   function handleServerResponse(response) {
     if (response.error) {
-      console.log(response.error);
       /* Handle Error */
     } else if (response.next_action) {
       handleAction(response);
@@ -120,18 +115,5 @@ function PaymentForm({ paymentMethod, paymentIntent }) {
         </form>
       </div>
     )
-  );
-}
-
-/* Elements Wrapper so that we can use useElement in PaymentForm  */
-export default function Stripe(props) {
-  const options = {
-    clientSecret: props.client_secret,
-  };
-
-  return (
-    <Elements stripe={stripePromise} options={options}>
-      <PaymentForm {...props} />
-    </Elements>
   );
 }

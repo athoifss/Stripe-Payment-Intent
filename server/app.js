@@ -24,30 +24,13 @@ app.post("/user/register", async (req, res) => {
 /* ---------------------------------------------------------------------- */
 
 app.post("/payment/method/attach", async (req, res) => {
-  const { cardNumber, expMonth, expYear, name, address } = req.body;
-
-  const card = {
-    number: cardNumber,
-    exp_month: parseInt(expMonth),
-    exp_year: parseInt(expYear),
-  };
-
-  const billingDetails = {
-    name: name,
-    address: {
-      country: address.country,
-      state: address.state,
-      city: address.city,
-      line1: address.line,
-      postal_code: address.postalCode,
-    },
-  };
+  const { paymentMethod } = req.body;
 
   /* Fetch the Customer Id of current logged in user from the database */
   const customerId = "cus_Lh8BpVkOo5akHN";
 
   try {
-    const method = await attachMethod({ card, customerId, billingDetails });
+    const method = await attachMethod({ paymentMethod, customerId });
     console.log(method);
     res.status(200).json({ message: "Payment method attached succesully" });
   } catch (err) {
@@ -151,14 +134,9 @@ async function listCustomerPayMethods(customerId) {
   });
 }
 
-function attachMethod({ card, billingDetails, customerId }) {
+function attachMethod({ paymentMethod, customerId }) {
   return new Promise(async (resolve, reject) => {
     try {
-      const paymentMethod = await stripe.paymentMethods.create({
-        type: "card",
-        billing_details: billingDetails,
-        card,
-      });
       const paymentMethodAttach = await stripe.paymentMethods.attach(paymentMethod.id, {
         customer: customerId,
       });

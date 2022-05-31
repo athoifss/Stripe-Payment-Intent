@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import style from "./AddPayMethod.module.scss";
-import { css } from "styled-components";
 
-import { PaymentInputsWrapper, usePaymentInputs } from "react-payment-inputs";
-import images from "react-payment-inputs/images";
+import { useElements, useStripe } from "@stripe/react-stripe-js";
 
 import { Country, State, City } from "country-state-city";
 import Select from "react-select";
 
 import { postRequest } from "../utils/api";
+import { CardElement } from "@stripe/react-stripe-js";
 
 export default function AddPayMethod() {
-  const { wrapperProps, getCardImageProps, getCardNumberProps, getExpiryDateProps } =
-    usePaymentInputs();
+  const stripe = useStripe();
+
+  const elements = useElements();
+  const card = useRef();
 
   const [cardInfo, setCardInfo] = useState({
     name: "",
@@ -27,12 +28,6 @@ export default function AddPayMethod() {
   const [locations, setLocations] = useState({ countries: "", states: "", cities: "" });
   const [selectedLocation, setSelectedLocation] = useState({ country: {}, city: {}, state: {} });
 
-  function handleCardInput(e) {
-    let data = { ...cardInfo };
-    data[e.target.name] = e.target.value;
-    setCardInfo(data);
-  }
-
   function handleChangeAddressLine(e) {
     const { value } = e.target;
     setCardInfo((prev) => {
@@ -40,12 +35,12 @@ export default function AddPayMethod() {
     });
   }
 
-  function handleChangePostalCode(e) {
-    const { value } = e.target;
-    setCardInfo((prev) => {
-      return { ...prev, address: { ...prev.address, postalCode: value } };
-    });
-  }
+  // function handleChangePostalCode(e) {
+  //   const { value } = e.target;
+  //   setCardInfo((prev) => {
+  //     return { ...prev, address: { ...prev.address, postalCode: value } };
+  //   });
+  // }
 
   function handleChangeName(e) {
     const { value } = e.target;
@@ -85,22 +80,38 @@ export default function AddPayMethod() {
     });
   }
 
-  function handleSubmit() {
-    const postData = {
-      cardNumber: cardInfo.number,
-      expMonth: parseInt(cardInfo.expiry.split("/")[0].trim()),
-      expYear: parseInt("20" + cardInfo.expiry.split("/")[1].trim()), //assuming 21st century
-      address: cardInfo.address,
+  async function handleSubmit() {
+    const address = cardInfo.address;
+    const billingDetails = {
       name: cardInfo.name,
+      address: {
+        country: address.country,
+        state: address.state,
+        city: address.city,
+        line1: address.line,
+      },
     };
 
-    postRequest("/payment/method/attach", postData)
-      .then((resp) => {
-        /* Handle success */
-      })
-      .catch((err) => {
-        /*Handle Error */
-      });
+    try {
+      stripe
+        .createPaymentMethod({
+          type: "card",
+          billing_details: billingDetails,
+          card: elements.getElement(CardElement),
+        })
+        .then((resp) => {
+          postRequest("/payment/method/attach", { paymentMethod: resp.paymentMethod })
+            .then((resp) => {
+              /* Handle success */
+            })
+            .catch((err) => {
+              /*Handle Error */
+            });
+          console.log(resp);
+        });
+    } catch (err) {
+      /* Handle Error*/
+    }
   }
 
   useEffect(() => {
@@ -125,66 +136,7 @@ export default function AddPayMethod() {
           />
         </div>
         <div className={style.rowPaymentInput}>
-          <label>Card Details</label>
-          <PaymentInputsWrapper
-            {...wrapperProps}
-            styles={{
-              fieldWrapper: {
-                base: css`
-                  margin-bottom: 1rem;
-                  width: 100%;
-                `,
-                focussed: css`
-                  outline: none;
-                  border: none;
-                `,
-              },
-              inputWrapper: {
-                errored: css`
-                  border-color: #fa6161;
-                `,
-                focused: css`
-                  outline: none;
-                  border: none;
-                `,
-              },
-              input: {
-                errored: css`
-                  color: #fa6161;
-                `,
-                cardNumber: css`
-                  width: 15rem;
-                `,
-                expiryDate: css`
-                  width: 10rem;
-                `,
-                cvc: css`
-                  width: 5rem;
-                `,
-              },
-              errorText: {
-                base: css`
-                  color: #fa6161;
-                `,
-              },
-            }}
-          >
-            <svg {...getCardImageProps({ images })} />
-            <input
-              className={style.cardNumber}
-              {...getCardNumberProps({
-                name: "number",
-                onChange: handleCardInput,
-              })}
-            />
-            <input
-              className={style.expiryDate}
-              {...getExpiryDateProps({
-                name: "expiry",
-                onChange: handleCardInput,
-              })}
-            />
-          </PaymentInputsWrapper>
+          <CardElement ref={card} />
         </div>
 
         <div className={style.addressWrapper}>
@@ -235,10 +187,10 @@ export default function AddPayMethod() {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label>Postal Code</label>
               <input onChange={handleChangePostalCode} type="text" placeholder="Enter Zip Code" />
-            </div>
+            </div> */}
           </div>
 
           <div className={style.btnContainer}>
