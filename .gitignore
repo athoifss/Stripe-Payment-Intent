@@ -1,2 +1,6 @@
 /server/node_modules
-/client/node_modules 
+/client/node_modules
+
+# Stripe keys: copy the *.example.json files and fill in your own
+/server/config.json
+/client/src/utils/config.json
